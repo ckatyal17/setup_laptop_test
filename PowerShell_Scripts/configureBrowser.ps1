@@ -67,7 +67,7 @@ foreach ($certUrl in $certificates) {
 
 # Install Tampermonkey extension
 $registryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
-$tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/file/3768983/tampermonkey-4.13.6136-an+fx.xpi"
+$tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/file/4250678/tampermonkey-5.1.0.xpi"
 
 if (-not (Test-Path $registryPath)) {
     Write-Host "Tampermonkey registry path not found"
