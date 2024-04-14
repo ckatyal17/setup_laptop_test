@@ -112,6 +112,7 @@ if (Test-Path $installDir -PathType Container) {
         try {
             New-ItemProperty -Path $certRegistryPath -Name $certName -Value $certPath -PropertyType String -Force | Out-Null
             $certName++
+            Write-Host "$($certFile.Name): Certificate Installed."
         } catch {
             Write-Host "Failed to install certificate $($certFile.Name): $_"
         }
