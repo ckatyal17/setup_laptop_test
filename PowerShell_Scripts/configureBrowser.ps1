@@ -33,7 +33,7 @@ try {
         } 
     } else {
         Write-Output "##################################`nInstalling Mozilla Firefox ESR`n##################################"
-        $firefox = (Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR 32-bit' })
+        $firefox = (Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR x64' })
         $Args = @{
             EnforcePreference = [UINT32] 0
             Id = "$($firefox.id)"
