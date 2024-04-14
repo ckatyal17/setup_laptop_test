@@ -56,6 +56,25 @@ try {
     return
 }
 
+# Install Tampermonkey extension
+$registryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
+$tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/file/4250678/tampermonkey-5.1.0.xpi"
+
+if (-not (Test-Path $registryPath)) {
+    Write-Host "Tampermonkey registry path not found"
+    return
+}
+
+if (-not (Get-ItemProperty -Path $registryPath -Name 100 -ErrorAction SilentlyContinue)) {
+    Write-Host "Installing Tampermonkey extension..."
+    try {
+        New-ItemProperty -Path $registryPath -Name 100 -Value $tampermonkeyUrl -PropertyType String -Force | Out-Null
+    } catch {
+        Write-Host "Failed to install Tampermonkey extension: $_"
+    }
+} else {
+    Write-Host "Tampermonkey extension already installed"
+}
 
 # Download Certificates
 $certificates = @(
@@ -79,29 +98,10 @@ foreach ($certUrl in $certificates) {
     }
 }
 
-# Install Tampermonkey extension
-$registryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
-$tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/file/4250678/tampermonkey-5.1.0.xpi"
-
-if (-not (Test-Path $registryPath)) {
-    Write-Host "Tampermonkey registry path not found"
-    return
-}
-
-if (-not (Get-ItemProperty -Path $registryPath -Name 100 -ErrorAction SilentlyContinue)) {
-    Write-Host "Installing Tampermonkey extension..."
-    try {
-        New-ItemProperty -Path $registryPath -Name 100 -Value $tampermonkeyUrl -PropertyType String -Force | Out-Null
-    } catch {
-        Write-Host "Failed to install Tampermonkey extension: $_"
-    }
-} else {
-    Write-Host "Tampermonkey extension already installed"
-}
-
 # Install Certificates
+Write-Host "Installing certificates..."
+
 if (Test-Path $installDir -PathType Container) {
-    Write-Host "Installing certificates..."
     $certRegistryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Certificates\Install"
     $certName = 100
     $certFiles = Get-ChildItem -Path $installDir -File
