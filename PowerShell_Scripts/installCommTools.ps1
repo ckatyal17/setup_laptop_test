@@ -1,11 +1,18 @@
-# Function to install applications with error handling
+﻿# Function to install applications with error handling
 function Install-Application {
     param (
         [string]$AppName
     )
 
     try {
-        # Attempt to get application instance
+        # Check if application is already installed
+        $installedApp = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
+        if ($installedApp) {
+            Write-Output "$AppName is already installed."
+            return
+        }
+
+        # Get application instance
         $app = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
 
         # Check if application instance is retrieved
