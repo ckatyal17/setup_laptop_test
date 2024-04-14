@@ -84,7 +84,8 @@ $certificates = @(
 )
 
 foreach ($certUrl in $certificates) {
-    $certName = $certUrl.Split('/')[-1]
+    $certName = $certUrl.Split('/')[-1] -replace '%20', ' '
+    # $certName = $certUrl.Split('/')[-1]
     $certPath = Join-Path -Path $installDir -ChildPath $certName
     if (-not (Test-Path $certPath)) {
         Write-Host "Downloading certificate: $certName"
