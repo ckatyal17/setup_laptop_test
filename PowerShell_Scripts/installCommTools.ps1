@@ -33,7 +33,7 @@ function Install-Application {
             }
         }
     } catch {
-        Write-Output "Failed to install $AppName: $_"
+        Write-Output "Failed to install $AppName. $_"
     }
 }
 
