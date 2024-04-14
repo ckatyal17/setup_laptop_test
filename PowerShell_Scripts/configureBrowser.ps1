@@ -100,33 +100,22 @@ foreach ($certUrl in $certificates) {
 
 # Install Certificates
 
-# Check if the folder exists
 if (Test-Path $installDir -PathType Container) {
-    # Get the list of items in the folder
-    $items = Get-ChildItem $installDir
-
-    # Set variable for Mozilla registry path
+    Write-Host "Installing certificates..."
     $certRegistryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Certificates\Install"
-
-    # Set variable for Certificate Name in registry
     $certName = 100
+    $certFiles = Get-ChildItem -Path $installDir -File
 
-    # Iterate through each item
-    foreach ($item in $items) {
-        # Check if the item is a file
-        if ($item.PSIsContainer -eq $false) {
-            # Perform read action on the file
-            $cert = "$($installDir)\$($item.Name)"
-
-            New-ItemProperty -Path $certRegistryPath -Name $certName -Value $cert -PropertyType String -Force | Out-Null
+    foreach ($certFile in $certFiles) {
+        $certPath = $certFile.FullName
+        Write-Host $certPath
+        try {
+            New-ItemProperty -Path $certRegistryPath -Name $certName -Value $certPath -PropertyType String -Force | Out-Null
             $certName++
-        }
-        else {
-            Write-Host "Skipping folder: $($item.FullName)"
+        } catch {
+            Write-Host "Failed to install certificate $($certFile.Name): $_"
         }
     }
+} else {
+    Write-Host "Folder does not exist: $installDir"
 }
-else {
-    Write-Host "Folder does not exist: $folderPath"
-}
-
