@@ -27,14 +27,20 @@ function Install-Application {
                 }
             
                 # Attempt to install application
-                Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
+                $output = Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
+                if ($output.ReturnValue -eq 0) {
+                    Write-Output "$AppName installed successfully"
+                } else {
+                    Write-Host "Failed to install $AppName : $($output.ReturnValue)"
+                    return
+                }
                 Write-Output "$AppName installed successfully."
             } else {
                 Write-Output "Application instance not found for $AppName."
             }
         }
     } catch {
-        Write-Output "Failed to install $AppName. $_"
+        Write-Output "Failed to install $AppName : $_"
     }
 }
 
