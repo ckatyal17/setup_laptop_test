@@ -59,9 +59,9 @@ try {
 
 # Download Certificates
 $certificates = @(
-    "https://pki.amazon.com/crt/Amazon.com%20Internal%20Root%20Certificate%20Authority.der",
-    "https://pki.amazon.com/crt/Amazon.com%20CIA%20CA%20G5%2001.der",
-    "https://pki.amazon.com/crt/Amazon.com%20CIA%20CA%20G5%2002.der"
+    "https://pki.amazon.com/crt/Amazon.com%20Internal%20Root%20Certificate%20Authority.der"
+    # "https://pki.amazon.com/crt/Amazon.com%20CIA%20CA%20G5%2001.der",
+    # "https://pki.amazon.com/crt/Amazon.com%20CIA%20CA%20G5%2002.der"
 )
 
 foreach ($certUrl in $certificates) {
