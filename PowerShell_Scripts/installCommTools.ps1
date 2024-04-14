@@ -29,7 +29,7 @@ function Install-Application {
                 # Attempt to install application
                 $output = Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
                 if ($output.ReturnValue -eq 0) {
-                    Start-Sleep -Seconds 30
+                    Start-Sleep -Seconds 45
                     Write-Output "$AppName installed successfully."
                 } else {
                     Write-Host "Failed to install $AppName : $($output.ReturnValue)"
