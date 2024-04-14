@@ -38,7 +38,7 @@ function Install-Application {
 }
 
 # Install Chime
-Install-Application -AppName 'Amazon Chime'
+Install-Application -AppName 'Amazon Chime 5'
 
 # Install Slack
 Install-Application -AppName 'Slack'
