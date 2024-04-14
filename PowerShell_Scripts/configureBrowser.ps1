@@ -47,11 +47,13 @@ try {
         if ($output.ReturnValue -eq 0) {
             Write-Output "Mozilla Firefox installed successfully"
         } else {
-            $output
+            Write-Host "Failed to install Mozilla Firefox: $($output.ReturnValue)"
+            return
         }
     }
 } catch {
     Write-Output "An error occurred: $_"
+    return
 }
 
 
