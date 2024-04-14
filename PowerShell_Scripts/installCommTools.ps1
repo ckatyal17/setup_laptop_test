@@ -7,30 +7,30 @@ function Install-Application {
     try {
         # Check if application is already installed
         $installedApp = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
-        if ($installedApp) {
+        if ($installedApp.InstallState -eq 'Installed') {
             Write-Output "$AppName is already installed."
             return
-        }
+        } else{
+            # Attempt to get application instance
+            $app = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
 
-        # Get application instance
-        $app = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
-
-        # Check if application instance is retrieved
-        if ($app) {
-            $Args = @{
-                EnforcePreference = [UINT32]0
-                Id = "$($app.id)"
-                IsMachineTarget = $app.IsMachineTarget
-                IsRebootIfNeeded = $False
-                Priority = 'High'
-                Revision = "$($app.Revision)" 
+            # Check if application instance is retrieved
+            if ($app) {
+                $Args = @{
+                    EnforcePreference = [UINT32]0
+                    Id = "$($app.id)"
+                    IsMachineTarget = $app.IsMachineTarget
+                    IsRebootIfNeeded = $False
+                    Priority = 'High'
+                    Revision = "$($app.Revision)" 
+                }
+            
+                # Attempt to install application
+                Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
+                Write-Output "$AppName installed successfully."
+            } else {
+                Write-Output "Application instance not found for $AppName."
             }
-        
-            # Attempt to install application
-            Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
-            Write-Output "$AppName installed successfully."
-        } else {
-            Write-Output "Application instance not found for $AppName."
         }
     } catch {
         Write-Output "Failed to install $AppName: $_"
