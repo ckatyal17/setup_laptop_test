@@ -12,6 +12,7 @@ function Install-Application {
             return
         } else{
             # Attempt to get application instance
+            Write-Host "Installing $AppName..."
             $app = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
 
             # Check if application instance is retrieved
