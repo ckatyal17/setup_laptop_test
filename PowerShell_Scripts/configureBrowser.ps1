@@ -11,34 +11,49 @@ if (-not (Test-Path $installDir -PathType Container)) {
 }
 
 # Check if Firefox is installed
-Write-Host "Checking if Firefox is installed..."
+try {
+    Write-Output "Checking if Firefox is installed..."
 
-$x86_check = ((Get-ChildItem "HKLM:Software\Microsoft\Windows\CurrentVersion\Uninstall") | Where-Object { $_."Name" -like "*Mozilla Firefox*" } ).Length -gt 0
-$x64_check = ((Get-ChildItem "HKLM:Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall") | Where-Object { $_."Name" -like "*Mozilla*" } ).Length -gt 0
-$mozilla = (Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object {$_.Name -eq 'Mozilla Firefox ESR'})
-$mozilla32 = (Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object {$_.Name -eq 'Mozilla Firefox ESR 32-bit'})
+    # Check if Mozilla Firefox is installed in 32-bit registry
+    $x86_check = ((Get-ChildItem "HKLM:Software\Microsoft\Windows\CurrentVersion\Uninstall") | Where-Object { $_."Name" -like "*Mozilla Firefox*" }).Length -gt 0
 
-if (($x86_check -eq $true) -or ($x64_check -eq $true)) {
-    if(($mozilla32.InstallState -eq 'Installed') -or ($mozilla.InstallState -eq 'Installed')){
-            Write-Host "Firefox is installed using Software Center"
-    }else{
-        Write-Host "Firefox is installed but not using Software center" 
-    } 
-}else {
-    Write-Host "##################################`nInstalling Mozilla firefox ESR`n##################################"
-    $firefox = (Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object {$_.Name -eq 'Mozilla Firefox ESR 32-bit'})
-    $Args = @{EnforcePreference = [UINT32] 0
-    Id = "$($firefox.id)"
-    IsMachineTarget = $firefox.IsMachineTarget
-    IsRebootIfNeeded = $False
-    Priority = 'High'
-    Revision = "$($firefox.Revision)" }
+    # Check if Mozilla Firefox is installed in 64-bit registry
+    $x64_check = ((Get-ChildItem "HKLM:Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall") | Where-Object { $_."Name" -like "*Mozilla*" }).Length -gt 0
 
-    $output = Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
-    if ($output.ReturnValue -eq 0){
-        Write-Host "Mozilla Firefox installed successfully"
-    }else {$output}
+    # Check if Mozilla Firefox ESR is installed
+    $mozilla = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR' }
+    $mozilla32 = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR 32-bit' }
+
+    # Install Mozilla Firefox if not already installed
+    if (($x86_check -eq $true) -or ($x64_check -eq $true)) {
+        if (($mozilla32.InstallState -eq 'Installed') -or ($mozilla.InstallState -eq 'Installed')) {
+            Write-Output "Firefox is installed using Software Center"
+        } else {
+            Write-Output "Firefox is installed but not using Software center" 
+        } 
+    } else {
+        Write-Output "##################################`nInstalling Mozilla Firefox ESR`n##################################"
+        $firefox = (Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR 32-bit' })
+        $Args = @{
+            EnforcePreference = [UINT32] 0
+            Id = "$($firefox.id)"
+            IsMachineTarget = $firefox.IsMachineTarget
+            IsRebootIfNeeded = $false
+            Priority = 'High'
+            Revision = "$($firefox.Revision)" 
+        }
+
+        $output = Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
+        if ($output.ReturnValue -eq 0) {
+            Write-Output "Mozilla Firefox installed successfully"
+        } else {
+            $output
+        }
+    }
+} catch {
+    Write-Output "An error occurred: $_"
 }
+
 
 # Download Certificates
 $certificates = @(
