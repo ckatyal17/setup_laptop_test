@@ -15,6 +15,7 @@ $firefoxInstalled = $false
 $firefoxInstances = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like '*Mozilla Firefox*' }
 if ($firefoxInstances) {
     $firefoxInstalled = $true
+    Write-Host "Firefox is already installed..."
 }
 
 if (-not $firefoxInstalled) {
