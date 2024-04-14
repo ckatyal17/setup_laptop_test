@@ -119,7 +119,7 @@ if (Test-Path $installDir -PathType Container) {
                 Write-Output "Certificate $certFileName is not installed on Mozilla Firefox. Installing Cert.."
                 New-ItemProperty -Path $certRegistryPath -Name $certName -Value $certPath -PropertyType String -Force | Out-Null
                 $certName++
-                Write-Host "$($certFileName): Certificate Installed."
+                Write-Host "Certificate Installed: $($certFileName)"
             }
         } catch {
             Write-Host "Failed to install certificate $(certFileName): $_"
