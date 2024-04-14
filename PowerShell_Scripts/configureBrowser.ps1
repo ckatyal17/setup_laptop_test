@@ -114,15 +114,15 @@ if (Test-Path $installDir -PathType Container) {
             $certificateRegistryKey = Get-ItemProperty -Path $certRegistryPath | Where-Object { $_.PSChildName -eq $certFileName }
 
             if ($certificateRegistryKey) {
-                Write-Output "Certificate $certificateName is installed on Mozilla Firefox."
+                Write-Output "Certificate $certFileName is installed on Mozilla Firefox."
             } else {
-                Write-Output "Certificate $certificateName is not installed on Mozilla Firefox."
+                Write-Output "Certificate $certFileName is not installed on Mozilla Firefox. Installing Cert.."
                 New-ItemProperty -Path $certRegistryPath -Name $certName -Value $certPath -PropertyType String -Force | Out-Null
                 $certName++
                 Write-Host "$($certFileName): Certificate Installed."
             }
         } catch {
-            Write-Host "Failed to install certificate $($certFile.Name): $_"
+            Write-Host "Failed to install certificate $(certFileName): $_"
         }
     }
 } else {
