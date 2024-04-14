@@ -11,12 +11,36 @@ if (-not (Test-Path $installDir -PathType Container)) {
 }
 
 # Check if Firefox is installed
-$firefoxInstalled = $false
-$firefoxInstances = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like '*Mozilla Firefox*' }
-if ($firefoxInstances) {
-    $firefoxInstalled = $true
-    Write-Host "Firefox is already installed..."
+
+Write-Host "Checking if Firefox is installed or not..."
+try {
+    $firefoxInstalled = $false
+
+    # Define registry paths
+    $registryPath32 = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
+    $registryPath64 = "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+
+    # Define search string
+    $searchString = "*Mozilla Firefox*"
+
+    # Check if Mozilla Firefox is installed in 32-bit registry
+    $firefoxInstalled32 = Get-ChildItem -Path $registryPath32 -ErrorAction Stop | Where-Object { $_.GetValue("DisplayName") -like $searchString }
+
+    # Check if Mozilla Firefox is installed in 64-bit registry
+    $firefoxInstalled64 = Get-ChildItem -Path $registryPath64 -ErrorAction Stop | Where-Object { $_.GetValue("DisplayName") -like $searchString }
+
+    # Check if either 32-bit or 64-bit installation is found
+    if ($firefoxInstalled32 -or $firefoxInstalled64) {
+        Write-Host "Mozilla Firefox is installed."
+        $firefoxInstalled = $true
+    } else {
+        Write-Host "Mozilla Firefox is not installed."
+        $firefoxInstalled = $false
+    }
+} catch {
+    Write-Host "An error occurred: $_"
 }
+
 
 if (-not $firefoxInstalled) {
     Write-Host "Installing Mozilla Firefox ESR..."
