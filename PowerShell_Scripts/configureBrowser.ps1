@@ -1,7 +1,9 @@
-﻿# Create folder
+﻿Write-Host "################################################`nInstalling and Configuring Mozilla Firefox ESR`n################################################" -ForegroundColor Blue
+
+# Create folder
 $installDir = "C:\Amzn-New-Win-Setup\BrowserSetup"
 if (-not (Test-Path $installDir -PathType Container)) {
-    Write-Host "Creating folder to store browser configuration files..." -ForegroundColor Blue
+    Write-Host "Creating folder to store browser configuration files..." -ForegroundColor Yellow
     try {
         New-Item -ItemType Directory -Path $installDir -Force | Out-Null
         Write-Host "Folder Created $installDir" -ForegroundColor Green
@@ -13,7 +15,6 @@ if (-not (Test-Path $installDir -PathType Container)) {
 
 # Check if Firefox is installed
 try {
-    Write-Host "##################################`nInstalling and Configuring Mozilla Firefox ESR`n##################################" -ForegroundColor Blue
 
     # Check if Mozilla Firefox is installed in 32-bit registry
     $x86_check = ((Get-ChildItem "HKLM:Software\Microsoft\Windows\CurrentVersion\Uninstall") | Where-Object { $_."Name" -like "*Mozilla Firefox*" }).Length -gt 0
@@ -67,7 +68,7 @@ if (-not (Test-Path $registryPath)) {
 }
 
 if (-not (Get-ItemProperty -Path $registryPath -Name 100 -ErrorAction SilentlyContinue)) {
-    Write-Host "Installing Tampermonkey extension..." -ForegroundColor Blue
+    Write-Host "Installing Tampermonkey extension..." -ForegroundColor Yellow
     try {
         New-ItemProperty -Path $registryPath -Name 100 -Value $tampermonkeyUrl -PropertyType String -Force | Out-Null
         Write-Host "Tampermonkey extension Installation Completed!" -ForegroundColor Green
@@ -89,7 +90,7 @@ foreach ($certUrl in $certificates) {
     $certName = $certUrl.Split('/')[-1] -replace '%20', ' '
     $certPath = Join-Path -Path $installDir -ChildPath $certName
     if (-not (Test-Path $certPath)) {
-        Write-Host "Downloading certificate: $certName" -ForegroundColor Blue
+        Write-Host "Downloading certificate: $certName" -ForegroundColor Yellow
         try {
             Invoke-WebRequest -Uri $certUrl -OutFile $certPath -ErrorAction Stop
         } catch {

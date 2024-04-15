@@ -13,7 +13,7 @@ function Install-Application {
             return
         } else{
             # Attempt to get application instance
-            Write-Host "Installing $AppName..." -ForegroundColor Blue
+            Write-Host "Installing $AppName..." -ForegroundColor Yellow
             $app = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
 
             # Check if application instance is retrieved
@@ -31,7 +31,7 @@ function Install-Application {
                 $output = Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
                 if ($output.ReturnValue -eq 0) {
                     Start-Sleep -Seconds 45
-                    Write-Host "$AppName installed successfully." -ForegroundColor Green
+                    Write-Host "$AppName installed successfully!" -ForegroundColor Green
                 } else {
                     Write-Host "Failed to install $AppName : $($output.ReturnValue)" -ForegroundColor Red
                     return

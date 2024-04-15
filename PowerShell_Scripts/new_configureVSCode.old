@@ -36,79 +36,58 @@ function Install-VSCodeExtensions {
 
 $codeExePath = "C:\Program Files\Microsoft VS Code\bin\code.cmd"
 
-## Function to install Microsoft VS Code.
-function Install-Application {
-    param (
-        [string]$AppName
-    )
-
-    try {
-        # Check if application is already installed
-        $installedApp = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
-        if ($installedApp.InstallState -eq 'Installed') {
-            Write-Host "$AppName is already installed." -ForegroundColor Yellow
-            return
-        } else{
-            # Attempt to get application instance
-            Write-Host "Installing $AppName..." -ForegroundColor Blue
-            $app = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
-
-            # Check if application instance is retrieved
-            if ($app) {
-                $Args = @{
-                    EnforcePreference = [UINT32]0
-                    Id = "$($app.id)"
-                    IsMachineTarget = $app.IsMachineTarget
-                    IsRebootIfNeeded = $False
-                    Priority = 'High'
-                    Revision = "$($app.Revision)" 
-                }
-            
-                # Attempt to install application
-                $output = Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
-                if ($output.ReturnValue -eq 0) {
-                    Start-Sleep -Seconds 45
-                    Write-Host "$AppName installed successfully." -ForegroundColor Green
-                } else {
-                    Write-Host "Failed to install $AppName : $($output.ReturnValue)" -ForegroundColor Red
-                    return
-                }
-            } else {
-                Write-Output "Application instance not found for $AppName."
-            }
-        }
-    } catch {
-        Write-Output "Failed to install $AppName : $_"
-    }
-}
-
 ## Check if VSCode is installed
 $vsCodeInstalled = $null
 
 try {
-    # Specify the registry path where VSCode installation information is stored
-    $registryPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
-
-    # Specify the registry key for Visual Studio Code
-    $vsCodeKey = Get-ItemProperty -Path "$registryPath\*" | Where-Object { $_.DisplayName -eq "Microsoft Visual Studio Code" }
-
-    if ($vsCodeKey) {
-        Write-Host "Visual Studio Code is installed." -ForegroundColor Green
-        $vsCodeInstalled = $true
-    } else {
-        Write-Host "Visual Studio Code is not installed. Installing Visual Studio Code..." -ForegroundColor Blue
+    $vsCodeVersion = code --version
+    if ($vsCodeVersion -eq $null) {
         $vsCodeInstalled = $false
+    } else {
+        $vsCodeInstalled = $true
     }
-} catch {
+}
+catch {
     Write-Host "Error occurred while checking VSCode installation: $_" -ForegroundColor Red
     $vsCodeInstalled = $false
 }
 
 ## Install VSCode if not already installed
 if (-not $vsCodeInstalled) {
-    Install-Application -AppName 'Visual Studio Code'
-    Start-Sleep -Seconds 45
-    Write-Host "Installation Complete!" -ForegroundColor Green
+    Write-Host "VS Code is not installed. Installing VS Code..." -ForegroundColor Blue
+
+    ## Create installation directory
+    $installDir = "C:\Amzn-New-Win-Setup\Installer"
+    try {
+        New-Item -ItemType "directory" -Path $installDir -Force | Out-Null
+    }
+    catch {
+        Write-Host "Error occurred while creating installation directory: $_" -ForegroundColor Red
+        exit 1
+    }
+
+    ## Install NuGet provider if not already installed
+    try {
+        if (-not (Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue -Force)) {
+            Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+        }
+    }
+    catch {
+        Write-Host "Error occurred while installing NuGet provider: $_" -ForegroundColor Red
+        exit 1
+    }
+
+    ## Download and run VSCode installation script
+    $vsCodeInstallScript = "https://raw.githubusercontent.com/PowerShell/vscode-powershell/master/scripts/Install-VSCode.ps1"
+    try {
+        Invoke-WebRequest -Uri $vsCodeInstallScript -OutFile "C:\Amzn-New-Win-Setup\Installer\Install-VSCode.ps1"
+        C:\Amzn-New-Win-Setup\Installer\Install-VSCode.ps1
+    }
+    catch {
+        Write-Host "Error occurred while installing VSCode: $_" -ForegroundColor Red
+        exit 1
+    }
+
     ## Refresh environment variables to load VSCode
     try {
         [System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Microsoft VS Code\bin", "Machine")
@@ -117,6 +96,8 @@ if (-not $vsCodeInstalled) {
         Write-Host "Error occurred while setting environment variable: $_" -ForegroundColor Red
         exit 1
     }
+
+    
 
     ## Install required VSCode extensions
     $requiredExtensions = @(
@@ -130,6 +111,6 @@ if (-not $vsCodeInstalled) {
     )
     Install-VSCodeExtensions -extensions $requiredExtensions
 } else {
-    Write-Host "VS Code is already installed. Skipping VS Code Installation..." -ForegroundColor Yellow
+    Write-Host "VS Code is already installed. Skipping VS Code Installation." -ForegroundColor Yellow
 }
  
