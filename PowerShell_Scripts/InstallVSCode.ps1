@@ -7,12 +7,12 @@ function Install-Application {
     try {
         # Check if application is already installed
         $registryPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
-        $vsCodeKey = Get-ItemProperty -Path "$registryPath\*" | Where-Object { $_.DisplayName -eq "Microsoft Visual Studio Code" }
         $userRegistryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
-        $vsCodeUserKey = Get-ItemProperty -Path "$registryPath\*" | Where-Object { $_.DisplayName -eq "Microsoft Visual Studio Code" }
+        $vsCodeKey = Get-ItemProperty -Path "$registryPath\*" | Where-Object { $_.DisplayName -eq "Microsoft Visual Studio Code" }
+        $vsCodeUserKey = Get-ItemProperty -Path "$userRegistryPath\*" | Where-Object { $_.DisplayName -eq "Microsoft Visual Studio Code (User)" }
         $installedApp = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
 
-        if (($installedApp.InstallState -eq 'Installed') -or $vsCodeKey) {
+        if (($installedApp -ne $null -and $installedApp.InstallState -eq 'Installed') -or $vsCodeKey -or $vsCodeUserKey) {
             Write-Host "$AppName is already installed." -ForegroundColor Yellow
             return
         } else{
