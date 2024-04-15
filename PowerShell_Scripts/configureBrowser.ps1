@@ -22,8 +22,8 @@ try {
     $x64_check = ((Get-ChildItem "HKLM:Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall") | Where-Object { $_."Name" -like "*Mozilla*" }).Length -gt 0
 
     # Check if Mozilla Firefox ESR is installed
-    $mozilla = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR' }
-    $mozilla32 = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR 32-bit' }
+    $mozilla = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR x64' }
+    $mozilla32 = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR x86' }
 
     # Install Mozilla Firefox if not already installed
     if (($x86_check -eq $true) -or ($x64_check -eq $true)) {
