@@ -6,6 +6,7 @@ function Install-Application {
 
     try {
         # Check if application is already installed
+        Write-Host "##################################`nInstalling $AppName`n##################################" -ForegroundColor Blue
         $installedApp = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
         if ($installedApp.InstallState -eq 'Installed') {
             Write-Host "$AppName is already installed." -ForegroundColor Yellow

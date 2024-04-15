@@ -6,6 +6,7 @@ function Install-Application {
 
     try {
         # Check if application is already installed
+        Write-Host "##################################`nInstalling $AppName`n##################################" -ForegroundColor Blue
         $registryPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
         $userRegistryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
         $vsCodeKey = Get-ItemProperty -Path "$registryPath\*" | Where-Object { $_.DisplayName -eq "Microsoft Visual Studio Code" }

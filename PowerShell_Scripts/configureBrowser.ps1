@@ -13,7 +13,7 @@ if (-not (Test-Path $installDir -PathType Container)) {
 
 # Check if Firefox is installed
 try {
-    Write-Host "Checking if Firefox is installed..." -ForegroundColor Blue
+    Write-Host "##################################`nInstalling and Configuring Mozilla Firefox ESR`n##################################" -ForegroundColor Blue
 
     # Check if Mozilla Firefox is installed in 32-bit registry
     $x86_check = ((Get-ChildItem "HKLM:Software\Microsoft\Windows\CurrentVersion\Uninstall") | Where-Object { $_."Name" -like "*Mozilla Firefox*" }).Length -gt 0
@@ -28,12 +28,11 @@ try {
     # Install Mozilla Firefox if not already installed
     if (($x86_check -eq $true) -or ($x64_check -eq $true)) {
         if (($mozilla32.InstallState -eq 'Installed') -or ($mozilla.InstallState -eq 'Installed')) {
-            Write-Host "Firefox is installed using Software Center" -ForegroundColor Yellow
+            Write-Host "Firefox is installed using Software Center." -ForegroundColor Yellow
         } else {
-            Write-Host "Firefox is installed but not using Software center" -ForegroundColor Yellow
+            Write-Host "Firefox is installed but not using Software center." -ForegroundColor Yellow
         } 
     } else {
-        Write-Output "##################################`nInstalling Mozilla Firefox ESR`n##################################"
         $firefox = (Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR x64' })
         $Args = @{
             EnforcePreference = [UINT32] 0
@@ -47,7 +46,7 @@ try {
         $output = Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
         if ($output.ReturnValue -eq 0) {
             Start-Sleep -Seconds 40
-            Write-Host "Mozilla Firefox installed successfully" -ForegroundColor Green
+            Write-Host "Mozilla Firefox installed successfully!" -ForegroundColor Green
         } else {
             Write-Host "Failed to install Mozilla Firefox: $($output.ReturnValue)" -ForegroundColor Red
             return
@@ -88,7 +87,6 @@ $certificates = @(
 
 foreach ($certUrl in $certificates) {
     $certName = $certUrl.Split('/')[-1] -replace '%20', ' '
-    # $certName = $certUrl.Split('/')[-1]
     $certPath = Join-Path -Path $installDir -ChildPath $certName
     if (-not (Test-Path $certPath)) {
         Write-Host "Downloading certificate: $certName" -ForegroundColor Blue
