@@ -1,0 +1,1 @@
+Change VSCode script to download and install VS Code from Software center and not from web. 
