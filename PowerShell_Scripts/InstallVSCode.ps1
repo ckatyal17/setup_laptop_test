@@ -1,131 +1,98 @@
-﻿# Create folder
-$installDir = "C:\Amzn-New-Win-Setup\BrowserSetup"
-if (-not (Test-Path $installDir -PathType Container)) {
-    Write-Host "Creating folder to store browser configuration files..." -ForegroundColor Blue
+﻿# Function to install Visual Studio Code.
+function Install-Application {
+    param (
+        [string]$AppName
+    )
+
     try {
-        New-Item -ItemType Directory -Path $installDir -Force | Out-Null
-    } catch {
-        Write-Host "Failed to create folder: $_" -ForegroundColor Red
-        return
-    }
-}
+        # Check if application is already installed
+        $registryPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
+        $vsCodeKey = Get-ItemProperty -Path "$registryPath\*" | Where-Object { $_.DisplayName -eq "Microsoft Visual Studio Code" }
+        $installedApp = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
 
-# Check if Firefox is installed
-try {
-    Write-Output "Checking if Firefox is installed..."
-
-    # Check if Mozilla Firefox is installed in 32-bit registry
-    $x86_check = ((Get-ChildItem "HKLM:Software\Microsoft\Windows\CurrentVersion\Uninstall") | Where-Object { $_."Name" -like "*Mozilla Firefox*" }).Length -gt 0
-
-    # Check if Mozilla Firefox is installed in 64-bit registry
-    $x64_check = ((Get-ChildItem "HKLM:Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall") | Where-Object { $_."Name" -like "*Mozilla*" }).Length -gt 0
-
-    # Check if Mozilla Firefox ESR is installed
-    $mozilla = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR' }
-    $mozilla32 = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR 32-bit' }
-
-    # Install Mozilla Firefox if not already installed
-    if (($x86_check -eq $true) -or ($x64_check -eq $true)) {
-        if (($mozilla32.InstallState -eq 'Installed') -or ($mozilla.InstallState -eq 'Installed')) {
-            Write-Host "Firefox is installed using Software Center" -ForegroundColor Yellow
-        } else {
-            Write-Host "Firefox is installed but not using Software center" -ForegroundColor Yellow
-        } 
-    } else {
-        Write-Output "##################################`nInstalling Mozilla Firefox ESR`n##################################"
-        $firefox = (Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR x64' })
-        $Args = @{
-            EnforcePreference = [UINT32] 0
-            Id = "$($firefox.id)"
-            IsMachineTarget = $firefox.IsMachineTarget
-            IsRebootIfNeeded = $false
-            Priority = 'High'
-            Revision = "$($firefox.Revision)" 
-        }
-
-        $output = Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
-        if ($output.ReturnValue -eq 0) {
-            Start-Sleep -Seconds 45
-            Write-Host "Mozilla Firefox installed successfully" -ForegroundColor Green
-        } else {
-            Write-Host "Failed to install Mozilla Firefox: $($output.ReturnValue)" -ForegroundColor Red
+        if (($installedApp.InstallState -eq 'Installed') -or $vsCodeKey) {
+            Write-Host "$AppName is already installed." -ForegroundColor Yellow
             return
-        }
-    }
-} catch {
-    Write-Output "An error occurred: $_"
-    return
-}
+        } else{
+            # Attempt to get application instance
+            Write-Host "Installing $AppName..." -ForegroundColor Blue
+            $app = Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -like $AppName }
 
-# Install Tampermonkey extension
-$registryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
-$tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/file/4250678/tampermonkey-5.1.0.xpi"
-
-if (-not (Test-Path $registryPath)) {
-    Write-Host "Tampermonkey registry path not found"
-    return
-}
-
-if (-not (Get-ItemProperty -Path $registryPath -Name 100 -ErrorAction SilentlyContinue)) {
-    Write-Host "Installing Tampermonkey extension..." -ForegroundColor Blue
-    try {
-        New-ItemProperty -Path $registryPath -Name 100 -Value $tampermonkeyUrl -PropertyType String -Force | Out-Null
-    } catch {
-        Write-Host "Failed to install Tampermonkey extension: $_" -ForegroundColor Red
-    }
-} else {
-    Write-Host "Tampermonkey extension already installed" -ForegroundColor Yellow
-}
-
-# Download Certificates
-$certificates = @(
-    "https://pki.amazon.com/crt/Amazon.com%20Internal%20Root%20Certificate%20Authority.der"
-    # "https://pki.amazon.com/crt/Amazon.com%20CIA%20CA%20G5%2001.der",
-    # "https://pki.amazon.com/crt/Amazon.com%20CIA%20CA%20G5%2002.der"
-)
-
-foreach ($certUrl in $certificates) {
-    $certName = $certUrl.Split('/')[-1] -replace '%20', ' '
-    # $certName = $certUrl.Split('/')[-1]
-    $certPath = Join-Path -Path $installDir -ChildPath $certName
-    if (-not (Test-Path $certPath)) {
-        Write-Host "Downloading certificate: $certName" -ForegroundColor Blue
-        try {
-            Invoke-WebRequest -Uri $certUrl -OutFile $certPath -ErrorAction Stop
-        } catch {
-            Write-Host "Failed to download certificate: $_" -ForegroundColor Red
-        }
-    } else {
-        Write-Host "Certificate already exists: $certName" -ForegroundColor Yellow
-    }
-}
-
-# Install Certificates
-
-if (Test-Path $installDir -PathType Container) {
-    Write-Host "Installing certificates..." -ForegroundColor Blue
-    $certRegistryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Certificates\Install"
-    $certName = 100
-    $certFiles = Get-ChildItem -Path $installDir -File
-
-    foreach ($certFile in $certFiles) {
-        try {
-            $certPath = $certFile.FullName
-            $certFileName = $certFile.Name
-            $certificateRegistryKey = Get-ItemProperty -Path $certRegistryPath | Where-Object { $_.PSChildName -eq $certFileName }
-
-            if ($certificateRegistryKey) {
-                Write-Host "Certificate $certFileName is installed on Mozilla Firefox." -ForegroundColor Yellow
+            # Check if application instance is retrieved
+            if ($app) {
+                $Args = @{
+                    EnforcePreference = [UINT32]0
+                    Id = "$($app.id)"
+                    IsMachineTarget = $app.IsMachineTarget
+                    IsRebootIfNeeded = $False
+                    Priority = 'High'
+                    Revision = "$($app.Revision)" 
+                }
+            
+                # Attempt to install application
+                $output = Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
+                if ($output.ReturnValue -eq 0) {
+                    Start-Sleep -Seconds 60
+                    Write-Host "$AppName installed successfully." -ForegroundColor Green
+                # Refresh environment variables to load VSCode
+                try {
+                    [System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Microsoft VS Code\bin", "Machine")
+                }
+                catch {
+                    Write-Host "Error occurred while setting environment variable: $_" -ForegroundColor Red
+                    exit 1
+                }
+                # Install required VSCode extensions
+                $requiredExtensions = @(
+                    "amazonwebservices.aws-toolkit-vscode",
+                    "docsmsft.docs-yaml",
+                    "ms-vscode.powershell",
+                    "ms-vscode-remote.remote-containers",
+                    "ms-vscode-remote.remote-ssh",
+                    "ms-vscode-remote.remote-ssh-edit",
+                    "ms-vscode-remote.vscode-remote-extensionpack"
+                )
+                Install-VSCodeExtensions -extensions $requiredExtensions
+                } else {
+                    Write-Host "Failed to install $AppName : $($output.ReturnValue)" -ForegroundColor Red
+                    return
+                }
             } else {
-                Write-Host "Certificate $certFileName is not installed on Mozilla Firefox. Installing Cert.." -ForegroundColor Blue
-                New-ItemProperty -Path $certRegistryPath -Name $certName -Value $certPath -PropertyType String -Force | Out-Null
-                $certName++
-                Write-Host "Certificate Installed: $($certFileName)" -ForegroundColor Green
+                Write-Output "Application instance not found for $AppName."
             }
-        } catch {
-            Write-Host "Failed to install certificate $(certFileName): $_" -ForegroundColor Red
         }
+    } catch {
+        Write-Output "Failed to install $AppName : $_"
     }
-} else {
-    Write-Host "Folder does not exist: $installDir" -ForegroundColor Red
 }
+
+## Function to install VSCode extensions
+function Install-VSCodeExtensions {
+    param (
+        [string[]]$extensions
+    )
+
+    try {
+        foreach ($extension in $extensions) {
+            & $codeExePath --install-extension $extension --force
+        }
+        Write-Host "Extensions installed successfully." -ForegroundColor Green
+    }
+    catch {
+        Write-Host "Error occurred while installing extensions: $_" -ForegroundColor Red
+    }
+}
+
+$codeExePath = "C:\Program Files\Microsoft VS Code\bin\code.cmd"
+
+# Install Visual Studio Code
+Install-Application -AppName 'Visual Studio Code'
+
+
+
+
+    
+
+
+
+
