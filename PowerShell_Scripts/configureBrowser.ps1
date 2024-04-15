@@ -45,6 +45,7 @@ try {
 
         $output = Invoke-CimMethod -Namespace "root\ccm\clientSDK" -ClassName CCM_Application -MethodName Install -Arguments $Args
         if ($output.ReturnValue -eq 0) {
+            Start-Sleep -Seconds 45
             Write-Host "Mozilla Firefox installed successfully" -ForegroundColor Green
         } else {
             Write-Host "Failed to install Mozilla Firefox: $($output.ReturnValue)" -ForegroundColor Red
