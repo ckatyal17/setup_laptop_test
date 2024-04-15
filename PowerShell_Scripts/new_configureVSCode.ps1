@@ -27,10 +27,10 @@ function Install-VSCodeExtensions {
         foreach ($extension in $extensions) {
             & $codeExePath --install-extension $extension --force
         }
-        Write-Host "Extensions installed successfully."
+        Write-Host "Extensions installed successfully." -ForegroundColor Green
     }
     catch {
-        Write-Host "Error occurred while installing extensions: $_"
+        Write-Host "Error occurred while installing extensions: $_" -ForegroundColor Red
     }
 }
 
@@ -48,13 +48,13 @@ try {
     }
 }
 catch {
-    Write-Host "Error occurred while checking VSCode installation: $_"
+    Write-Host "Error occurred while checking VSCode installation: $_" -ForegroundColor Red
     $vsCodeInstalled = $false
 }
 
 ## Install VSCode if not already installed
 if (-not $vsCodeInstalled) {
-    Write-Host "VS Code is not installed. Installing VS Code..."
+    Write-Host "VS Code is not installed. Installing VS Code..." -ForegroundColor Blue
 
     ## Create installation directory
     $installDir = "C:\Amzn-New-Win-Setup\Installer"
@@ -62,7 +62,7 @@ if (-not $vsCodeInstalled) {
         New-Item -ItemType "directory" -Path $installDir -Force | Out-Null
     }
     catch {
-        Write-Host "Error occurred while creating installation directory: $_"
+        Write-Host "Error occurred while creating installation directory: $_" -ForegroundColor Red
         exit 1
     }
 
@@ -73,7 +73,7 @@ if (-not $vsCodeInstalled) {
         }
     }
     catch {
-        Write-Host "Error occurred while installing NuGet provider: $_"
+        Write-Host "Error occurred while installing NuGet provider: $_" -ForegroundColor Red
         exit 1
     }
 
@@ -84,7 +84,7 @@ if (-not $vsCodeInstalled) {
         C:\Amzn-New-Win-Setup\Installer\Install-VSCode.ps1
     }
     catch {
-        Write-Host "Error occurred while installing VSCode: $_"
+        Write-Host "Error occurred while installing VSCode: $_" -ForegroundColor Red
         exit 1
     }
 
@@ -93,7 +93,7 @@ if (-not $vsCodeInstalled) {
         [System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Microsoft VS Code\bin", "Machine")
     }
     catch {
-        Write-Host "Error occurred while setting environment variable: $_"
+        Write-Host "Error occurred while setting environment variable: $_" -ForegroundColor Red
         exit 1
     }
 
@@ -111,6 +111,6 @@ if (-not $vsCodeInstalled) {
     )
     Install-VSCodeExtensions -extensions $requiredExtensions
 } else {
-    Write-Host "VS Code is already installed. Skipping VS Code Installation..."
+    Write-Host "VS Code is already installed. Skipping VS Code Installation..." -ForegroundColor Yellow
 }
  

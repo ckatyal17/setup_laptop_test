@@ -1,11 +1,11 @@
 ﻿# Create folder
 $installDir = "C:\Amzn-New-Win-Setup\BrowserSetup"
 if (-not (Test-Path $installDir -PathType Container)) {
-    Write-Host "Creating folder to store browser configuration files..."
+    Write-Host "Creating folder to store browser configuration files..." -ForegroundColor Blue
     try {
         New-Item -ItemType Directory -Path $installDir -Force | Out-Null
     } catch {
-        Write-Host "Failed to create folder: $_"
+        Write-Host "Failed to create folder: $_" -ForegroundColor Red
         return
     }
 }
@@ -32,7 +32,7 @@ try {
             Write-Host "Firefox is installed but not using Software center" -ForegroundColor Yellow
         } 
     } else {
-        Write-Host "##################################`nInstalling Mozilla Firefox ESR`n##################################"
+        Write-Output "##################################`nInstalling Mozilla Firefox ESR`n##################################"
         $firefox = (Get-CimInstance -ClassName CCM_Application -Namespace "root\ccm\clientSDK" | Where-Object { $_.Name -eq 'Mozilla Firefox ESR x64' })
         $Args = @{
             EnforcePreference = [UINT32] 0
@@ -61,7 +61,7 @@ $registryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
 $tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/file/4250678/tampermonkey-5.1.0.xpi"
 
 if (-not (Test-Path $registryPath)) {
-    Write-Host "Tampermonkey registry path not found" -ForegroundColor Yellow
+    Write-Host "Tampermonkey registry path not found"
     return
 }
 
@@ -114,17 +114,17 @@ if (Test-Path $installDir -PathType Container) {
             $certificateRegistryKey = Get-ItemProperty -Path $certRegistryPath | Where-Object { $_.PSChildName -eq $certFileName }
 
             if ($certificateRegistryKey) {
-                Write-Host "Certificate $certFileName is installed on Mozilla Firefox." -ForegroundColor Green
+                Write-Host "Certificate $certFileName is installed on Mozilla Firefox." -ForegroundColor Yellow
             } else {
-                Write-Host "Certificate $certFileName is not installed on Mozilla Firefox. Installing Cert.." 
+                Write-Host "Certificate $certFileName is not installed on Mozilla Firefox. Installing Cert.." -ForegroundColor Blue
                 New-ItemProperty -Path $certRegistryPath -Name $certName -Value $certPath -PropertyType String -Force | Out-Null
                 $certName++
-                Write-Host "Certificate Installed: $($certFileName)"
+                Write-Host "Certificate Installed: $($certFileName)" -ForegroundColor Green
             }
         } catch {
-            Write-Host "Failed to install certificate $(certFileName): $_"
+            Write-Host "Failed to install certificate $(certFileName): $_" -ForegroundColor Red
         }
     }
 } else {
-    Write-Host "Folder does not exist: $installDir"
+    Write-Host "Folder does not exist: $installDir" -ForegroundColor Red
 }

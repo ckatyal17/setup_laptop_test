@@ -1,4 +1,4 @@
-﻿# Function to install applications with error handling
+﻿# Function to install Slack and Chime.
 function Install-Application {
     param (
         [string]$AppName
