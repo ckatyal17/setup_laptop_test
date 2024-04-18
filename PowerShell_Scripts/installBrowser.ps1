@@ -101,7 +101,7 @@ if (-not $tampermonkeyInstalled) {
     Start-Process "firefox" "https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/" -Wait
 
     # Prompt the user to press Enter before continuing
-    Write-Host "Firefox is launched. Please add the tampermonkey Extension. Once done press Enter to continue..."
+    Write-Host "Firefox is launched. Please add the tampermonkey Extension. Once done press Enter to continue..." -ForegroundColor Red
     Read-Host
 } else {
     Write-Host "Tampermonkey is already installed on Firefox." -ForegroundColor Green
