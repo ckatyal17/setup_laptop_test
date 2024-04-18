@@ -91,13 +91,9 @@ function CheckTampermonkeyInstalled {
 # Check if Tampermonkey is installed
 $tampermonkeyInstalled = CheckTampermonkeyInstalled
 
+# Insatll Tampermonkey
 if (-not $tampermonkeyInstalled) {
-    Write-Host "Installing Tampermonkey..." -ForegroundColor Yellow
-    # Install Tampermonkey extension
-
-    $registryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
-
-
+    Write-Host "Installing Tampermonkey..." -ForegroundColor Yellow    
     # Define an array of registry keys to check
     $registryKeys = @(
         "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install",
@@ -109,22 +105,29 @@ if (-not $tampermonkeyInstalled) {
     # Set URL to download tampermonkey
     $tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/latest/tampermonkey/addon-9074-latest.xpi"
 
-    # Define the new key to create
-    $newKey = "NewKey"
+    $installState = $false
 
     # Loop through the registry keys
     foreach ($key in $registryKeys) {
         # Check if the registry key exists
         if (Test-Path -Path $key) {
             try {
-                New-ItemProperty -Path $registryPath -Name 100 -Value $tampermonkeyUrl -PropertyType String -Force | Out-Null
-                Write-Host "Tampermonkey extension Installation Completed!" -ForegroundColor Green
+                New-ItemProperty -Path $key -Name 100 -Value $tampermonkeyUrl -PropertyType String -Force | Out-Null
+                $installState = $true
+                
             } catch {
-                Write-Host "Failed to install Tampermonkey extension: $_" -ForegroundColor Red
+                $installState = $false
+                
             }
         } else {
             Write-Host "Tampermonkey registry path not found"
         }
+    }
+
+    if ($installState = $true){
+        Write-Host "Tampermonkey extension Installation Completed!" -ForegroundColor Green
+    } else{
+        Write-Host "Failed to install Tampermonkey extension: $_" -ForegroundColor Red
     }
 } else {
     Write-Host "Tampermonkey is already installed on Firefox." -ForegroundColor Green
