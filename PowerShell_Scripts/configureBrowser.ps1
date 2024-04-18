@@ -93,41 +93,41 @@ $tampermonkeyInstalled = CheckTampermonkeyInstalled
 
 if (-not $tampermonkeyInstalled) {
     Write-Host "Installing Tampermonkey..." -ForegroundColor Yellow
+    # Install Tampermonkey extension
+
+    $registryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
+
+
+    # Define an array of registry keys to check
+    $registryKeys = @(
+        "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install",
+        "HKLM:\SOFTWARE\Mozilla\Firefox\Extensions\Install",
+        "HKCU:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install",
+        "HKCU:\SOFTWARE\Mozilla\Firefox\Extensions\Install"
+    )
+
+    # Set URL to download tampermonkey
+    $tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/latest/tampermonkey/addon-9074-latest.xpi"
+
+    # Define the new key to create
+    $newKey = "NewKey"
+
+    # Loop through the registry keys
+    foreach ($key in $registryKeys) {
+        # Check if the registry key exists
+        if (Test-Path -Path $key) {
+            try {
+                New-ItemProperty -Path $registryPath -Name 100 -Value $tampermonkeyUrl -PropertyType String -Force | Out-Null
+                Write-Host "Tampermonkey extension Installation Completed!" -ForegroundColor Green
+            } catch {
+                Write-Host "Failed to install Tampermonkey extension: $_" -ForegroundColor Red
+            }
+        } else {
+            Write-Host "Tampermonkey registry path not found"
+        }
+    }
 } else {
     Write-Host "Tampermonkey is already installed on Firefox." -ForegroundColor Green
-}
-# Install Tampermonkey extension
-
-$registryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
-
-
-# Define an array of registry keys to check
-$registryKeys = @(
-    "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install",
-    "HKLM:\SOFTWARE\Mozilla\Firefox\Extensions\Install",
-    "HKCU:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install",
-    "HKCU:\SOFTWARE\Mozilla\Firefox\Extensions\Install"
-)
-
-# Set URL to download tampermonkey
-$tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/latest/tampermonkey/addon-9074-latest.xpi"
-
-# Define the new key to create
-$newKey = "NewKey"
-
-# Loop through the registry keys
-foreach ($key in $registryKeys) {
-    # Check if the registry key exists
-    if (Test-Path -Path $key) {
-        try {
-            New-ItemProperty -Path $registryPath -Name 100 -Value $tampermonkeyUrl -PropertyType String -Force | Out-Null
-            Write-Host "Tampermonkey extension Installation Completed!" -ForegroundColor Green
-        } catch {
-            Write-Host "Failed to install Tampermonkey extension: $_" -ForegroundColor Red
-        }
-    } else {
-        Write-Host "Tampermonkey registry path not found"
-    }
 }
 
 # Download Certificates
