@@ -119,8 +119,6 @@ if (-not $tampermonkeyInstalled) {
                 $installState = $false
                 
             }
-        } else {
-            Write-Host "Tampermonkey registry path not found"
         }
     }
 
