@@ -58,25 +58,76 @@ try {
     return
 }
 
-# Install Tampermonkey extension
-$registryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
-$tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/file/4250678/tampermonkey-5.1.0.xpi"
 
-if (-not (Test-Path $registryPath)) {
-    Write-Host "Tampermonkey registry path not found"
-    return
+
+# Function to check if Tampermonkey is installed on Firefox
+function CheckTampermonkeyInstalled {
+    # Define the path to the Firefox profile directory
+    $firefoxProfileDir = "$env:APPDATA\Mozilla\Firefox\Profiles"
+
+    # Get a list of profile directories
+    $profileDirs = Get-ChildItem $firefoxProfileDir -Directory
+
+    # Initialize a variable to track if Tampermonkey is installed
+    $tampermonkeyInstalled = $false
+
+    # Iterate through each profile directory
+    foreach ($profileDir in $profileDirs) {
+        # Construct the path to the extensions directory within the profile
+        $extensionsDir = Join-Path -Path $profileDir.FullName -ChildPath "extensions"
+        
+        # Check if the Tampermonkey extension directory exists within the profile
+        if (Test-Path (Join-Path -Path $extensionsDir -ChildPath "firefox@tampermonkey.net.xpi")) {
+            # Tampermonkey extension directory found
+            $tampermonkeyInstalled = $true
+            break  # Exit the loop since Tampermonkey is already found
+        }
+    }
+
+    # Return whether Tampermonkey is installed
+    return $tampermonkeyInstalled
 }
 
-if (-not (Get-ItemProperty -Path $registryPath -Name 100 -ErrorAction SilentlyContinue)) {
-    Write-Host "Installing Tampermonkey extension..." -ForegroundColor Yellow
-    try {
-        New-ItemProperty -Path $registryPath -Name 100 -Value $tampermonkeyUrl -PropertyType String -Force | Out-Null
-        Write-Host "Tampermonkey extension Installation Completed!" -ForegroundColor Green
-    } catch {
-        Write-Host "Failed to install Tampermonkey extension: $_" -ForegroundColor Red
-    }
+# Check if Tampermonkey is installed
+$tampermonkeyInstalled = CheckTampermonkeyInstalled
+
+if (-not $tampermonkeyInstalled) {
+    Write-Host "Installing Tampermonkey..." -ForegroundColor Yellow
 } else {
-    Write-Host "Tampermonkey extension already installed" -ForegroundColor Yellow
+    Write-Host "Tampermonkey is already installed on Firefox." -ForegroundColor Green
+}
+# Install Tampermonkey extension
+
+$registryPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
+
+
+# Define an array of registry keys to check
+$registryKeys = @(
+    "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install",
+    "HKLM:\SOFTWARE\Mozilla\Firefox\Extensions\Install",
+    "HKCU:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install",
+    "HKCU:\SOFTWARE\Mozilla\Firefox\Extensions\Install"
+)
+
+# Set URL to download tampermonkey
+$tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/latest/tampermonkey/addon-9074-latest.xpi"
+
+# Define the new key to create
+$newKey = "NewKey"
+
+# Loop through the registry keys
+foreach ($key in $registryKeys) {
+    # Check if the registry key exists
+    if (Test-Path -Path $key) {
+        try {
+            New-ItemProperty -Path $registryPath -Name 100 -Value $tampermonkeyUrl -PropertyType String -Force | Out-Null
+            Write-Host "Tampermonkey extension Installation Completed!" -ForegroundColor Green
+        } catch {
+            Write-Host "Failed to install Tampermonkey extension: $_" -ForegroundColor Red
+        }
+    } else {
+        Write-Host "Tampermonkey registry path not found"
+    }
 }
 
 # Download Certificates

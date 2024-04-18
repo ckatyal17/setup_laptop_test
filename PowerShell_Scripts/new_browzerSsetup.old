@@ -1,0 +1,76 @@
+# Function to check if Tampermonkey is installed on Firefox
+function CheckTampermonkeyInstalled {
+    # Define the path to the Firefox profile directory
+    $firefoxProfileDir = "$env:APPDATA\Mozilla\Firefox\Profiles"
+
+    # Get a list of profile directories
+    $profileDirs = Get-ChildItem $firefoxProfileDir -Directory
+
+    # Initialize a variable to track if Tampermonkey is installed
+    $tampermonkeyInstalled = $false
+
+    # Iterate through each profile directory
+    foreach ($profileDir in $profileDirs) {
+        # Construct the path to the extensions directory within the profile
+        $extensionsDir = Join-Path -Path $profileDir.FullName -ChildPath "extensions"
+        
+        # Check if the Tampermonkey extension directory exists within the profile
+        if (Test-Path (Join-Path -Path $extensionsDir -ChildPath "firefox@tampermonkey.net.xpi")) {
+            # Tampermonkey extension directory found
+            $tampermonkeyInstalled = $true
+            break  # Exit the loop since Tampermonkey is already found
+        }
+    }
+
+    # Return whether Tampermonkey is installed
+    return $tampermonkeyInstalled
+}
+
+# Function to install Tampermonkey on Firefox
+function InstallTampermonkey {
+    param (
+        [string]$targetFolder
+    )
+
+    # URL to download Tampermonkey XPI file
+    $tampermonkeyUrl = "https://addons.mozilla.org/firefox/downloads/latest/tampermonkey/addon-9074-latest.xpi"
+
+    # Download Tampermonkey XPI file to the specified folder
+    $tempFile = Join-Path -Path $targetFolder -ChildPath "firefox@tampermonkey.net.xpi"
+    Invoke-WebRequest -Uri $tampermonkeyUrl -OutFile $tempFile
+
+    Write-Host "Tampermonkey XPI file downloaded to: $tempFile"
+
+    # Path to the Firefox extensions directory
+    $firefoxExtensionsDir = "$env:APPDATA\Mozilla\Firefox\Profiles\*.default-esr\extensions"
+
+    # Get the Firefox profile directory
+    #$profileDir = Get-ChildItem -Path $firefoxExtensionsDir -Directory | Select-Object -First 1
+
+    # Determine the target directory to install Tampermonkey
+    #$targetDir = Join-Path -Path $profileDir.FullName 
+
+    # Create the target directory if it doesn't exist
+    if (-not (Test-Path -Path $firefoxExtensionsDir)) {
+        New-Item -Path $firefoxExtensionsDir -ItemType Directory -Force | Out-Null
+    }
+
+    # Move Tampermonkey XPI file to the target directory
+    Move-Item -Path $tempFile -Destination $firefoxExtensionsDir -Force
+
+    Write-Host "Tampermonkey installed successfully."
+}
+
+
+# Check if Tampermonkey is installed
+$tampermonkeyInstalled = CheckTampermonkeyInstalled
+
+if (-not $tampermonkeyInstalled) {
+    # Define the target folder to store Tampermonkey XPI file
+    $targetFolder = "C:\Amzn-New-Win-Setup\BrowserSetup"
+
+    # Install Tampermonkey
+    InstallTampermonkey -targetFolder $targetFolder
+} else {
+    Write-Host "Tampermonkey is already installed on Firefox."
+}
