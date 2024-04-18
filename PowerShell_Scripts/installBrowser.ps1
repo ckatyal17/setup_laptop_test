@@ -98,7 +98,7 @@ $tampermonkeyInstalled = CheckTampermonkeyInstalled
 if (-not $tampermonkeyInstalled) {
     Write-Host "Installing Tampermonkey..." -ForegroundColor Yellow    
     # Start Firefox to download a file
-    Start-Process "firefox" "https://addons.mozilla.org/firefox/downloads/latest/tampermonkey/addon-9074-latest.xpi" -Wait
+    Start-Process "firefox" "https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/" -Wait
 
     # Prompt the user to press Enter before continuing
     Write-Host "Firefox is launched. Please add the tampermonkey Extension. Once done press Enter to continue..."
