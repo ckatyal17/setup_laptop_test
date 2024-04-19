@@ -101,7 +101,7 @@ if (-not $tampermonkeyInstalled) {
     Start-Process "firefox" "https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/" -Wait
 
     # Prompt the user to press Enter before continuing
-    Write-Host "Firefox is launched. Please add the tampermonkey Extension. Once done press Enter to continue..." -ForegroundColor Red
+    Write-Host "Opened Firefox to Tampermonkey download page. Please follow manual installation steps. Once done press Enter to continue..." -ForegroundColor Red
     Read-Host
 } else {
     Write-Host "Tampermonkey is already installed on Firefox." -ForegroundColor Green
@@ -125,7 +125,7 @@ foreach ($certUrl in $certificates) {
             Write-Host "Failed to download certificate: $_" -ForegroundColor Red
         }
     } else {
-        Write-Host "Certificate already exists: $certName" -ForegroundColor Yellow
+        Write-Host "Certificate already exists exists in folder: $certName" -ForegroundColor Yellow
     }
 }
 
